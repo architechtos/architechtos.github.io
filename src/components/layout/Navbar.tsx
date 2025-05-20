@@ -17,10 +17,10 @@ const Navbar = () => {
     name: "Αρχική",
     href: "/"
   }, ...(isAuthenticated ? [{
-    name: "Φόρουμ",
+    name: "",
     href: "/forum"
   }, {
-    name: "Συνομιλία",
+    name: "",
     href: "/chat"
   }, {
     name: "Αναφορά Αδέσποτου",
