@@ -16,13 +16,13 @@ const Navbar = () => {
   const navigation = [{
     name: "Αρχική",
     href: "/"
-  }, ...(isAuthenticated ? [{
+  ;}, ...(isAuthenticated ? [{
     name: "Φόρουμ",
     href: "/forum"
-  }, {
+  ;}, {
     name: "Συνομιλία",
     href: "/chat"
-  }, {
+  ;}, {
     name: "Αναφορά Αδέσποτου",
     href: "/report"
   }] : [])];
