@@ -18,10 +18,10 @@ const Navbar = () => {
     href: "/"
   }, ...(isAuthenticated ? [{
     name: "",
-    href: "/forum"
+    href: ""
   }, {
     name: "",
-    href: "/chat"
+    href: ""
   }, {
     name: "Αναφορά Αδέσποτου",
     href: "/report"
