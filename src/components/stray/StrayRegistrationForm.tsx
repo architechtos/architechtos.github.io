@@ -1,0 +1,252 @@
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { useRanking } from "@/hooks/use-ranking";
+import { useQuery } from "@tanstack/react-query";
+import StrayImageUpload from "./StrayImageUpload";
+import StrayBasicInfo from "./StrayBasicInfo";
+import StrayCharacteristics from "./StrayCharacteristics";
+import StrayTagsInput from "./StrayTagsInput";
+import StrayLocationInfo from "./StrayLocationInfo";
+import StrayNeuteringInfo from "./StrayNeuteringInfo";
+import StrayRegistererInfo from "./StrayRegistererInfo";
+
+const registrationSchema = z.object({
+  name: z.string().min(1, "Το όνομα είναι υποχρεωτικό"),
+  birthYear: z.number().min(2000).max(new Date().getFullYear()).optional(),
+  gender: z.string().optional(),
+  characteristics: z.array(z.string()).default([]),
+  age: z.number().min(0, "Η ηλικία πρέπει να είναι θετικός αριθμός").optional(),
+  furColors: z.array(z.string()).default([]),
+  locationDescription: z.string().optional(),
+  story: z.string().optional(),
+  isNeutered: z.boolean().default(false),
+  neuteringVet: z.string().optional(),
+  neuteringDate: z.string().optional(),
+  possibleRelatives: z.array(z.string()).default([]),
+  expensesPaidBy: z.string().optional(),
+  registererUsername: z.string().optional(),
+});
+
+type RegistrationFormData = z.infer<typeof registrationSchema>;
+
+interface StrayRegistrationFormProps {
+  isSubmitting: boolean;
+  setIsSubmitting: (value: boolean) => void;
+  onSuccess: () => void;
+}
+
+const StrayRegistrationForm = ({ 
+  isSubmitting, 
+  setIsSubmitting, 
+  onSuccess 
+}: StrayRegistrationFormProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { awardStrayRegistrationPoints } = useRanking();
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  
+  const form = useForm<RegistrationFormData>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      name: "",
+      birthYear: undefined,
+      gender: "",
+      characteristics: [],
+      age: undefined,
+      furColors: [],
+      locationDescription: "",
+      story: "",
+      isNeutered: false,
+      neuteringVet: "",
+      neuteringDate: "",
+      possibleRelatives: [],
+      expensesPaidBy: "",
+      registererUsername: "",
+    },
+  });
+
+  // Get user profile for username
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const uploadImages = async (images: File[]): Promise<string[]> => {
+    const imageUrls: string[] = [];
+    
+    for (let i = 0; i < Math.min(images.length, 5); i++) {
+      const image = images[i];
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2);
+      const extension = image.name.split('.').pop()?.toLowerCase() || '';
+      const fileName = `${user!.id}/${timestamp}_${random}.${extension}`;
+      
+      console.log("Uploading stray image:", fileName);
+      
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('strays')
+        .upload(fileName, image, { 
+          cacheControl: '3600',
+          upsert: false 
+        });
+
+      if (uploadError) {
+        console.error("Stray image upload error:", uploadError);
+        throw new Error(`Σφάλμα μεταφόρτωσης εικόνας: ${uploadError.message}`);
+      }
+
+      if (uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('strays')
+          .getPublicUrl(uploadData.path);
+        imageUrls.push(urlData.publicUrl);
+        console.log("Stray image uploaded successfully:", urlData.publicUrl);
+      }
+    }
+    
+    return imageUrls;
+  };
+
+  const onSubmit = async (data: RegistrationFormData) => {
+    if (!user?.id) {
+      toast({
+        title: "Σφάλμα",
+        description: "Δεν είστε συνδεδεμένος",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    console.log("Starting stray registration with user:", user.id);
+    console.log("Form data:", data);
+    
+    try {
+      let imageUrls: string[] = [];
+
+      if (selectedImages.length > 0) {
+        console.log("Uploading images:", selectedImages.length);
+        imageUrls = await uploadImages(selectedImages);
+      }
+
+      const strayData = {
+        name: data.name.trim(),
+        birth_year: data.birthYear || null,
+        gender: data.gender || null,
+        characteristics: data.characteristics.length > 0 ? data.characteristics : null,
+        age: data.age || null,
+        coat_colors_tags: data.furColors.length > 0 ? data.furColors : null,
+        location_description: data.locationDescription?.trim() || null,
+        story: data.story?.trim() || null,
+        image_url: imageUrls.length > 0 ? imageUrls[0] : null,
+        image_urls: imageUrls.length > 0 ? imageUrls : null,
+        is_neutered: data.isNeutered,
+        neutering_vet: data.isNeutered && data.neuteringVet ? data.neuteringVet.trim() : null,
+        neutering_date: data.isNeutered && data.neuteringDate ? data.neuteringDate : null,
+        relative_animals_tags: data.possibleRelatives.length > 0 ? data.possibleRelatives : null,
+        expenses_paid_by: data.expensesPaidBy?.trim() || null,
+        registered_by: user.id,
+        registerer_username: profile?.username || null,
+      };
+
+      console.log("Submitting stray data:", strayData);
+
+      const { data: insertedStray, error } = await supabase
+        .from("strays")
+        .insert([strayData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Database error:", error);
+        throw new Error(`Σφάλμα βάσης δεδομένων: ${error.message}`);
+      }
+
+      console.log("Stray registered successfully:", insertedStray);
+
+      toast({
+        title: "Επιτυχής καταχώρηση!",
+        description: "Το αδέσποτο καταχωρήθηκε επιτυχώς στη βάση δεδομένων.",
+      });
+
+      try {
+        await awardStrayRegistrationPoints(insertedStray.id);
+        console.log("Points awarded successfully");
+      } catch (pointsError) {
+        console.error("Error awarding points:", pointsError);
+      }
+
+      onSuccess();
+    } catch (error) {
+      console.error("Error registering stray:", error);
+      toast({
+        title: "Σφάλμα",
+        description: error instanceof Error ? error.message : "Υπήρξε πρόβλημα κατά την καταχώρηση. Παρακαλώ δοκιμάστε ξανά.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <StrayRegistererInfo form={form} />
+
+        <StrayImageUpload 
+          onImagesSelect={setSelectedImages}
+          maxImages={5}
+          currentImages={selectedImages}
+        />
+
+        <StrayBasicInfo form={form} />
+
+        <StrayCharacteristics
+          value={form.watch("characteristics")}
+          onChange={(characteristics) => form.setValue("characteristics", characteristics)}
+        />
+
+        <StrayTagsInput
+          label="Χρώματα τριχώματος"
+          tags={form.watch("furColors")}
+          onTagsChange={(tags) => form.setValue("furColors", tags)}
+          placeholder="π.χ. καφέ, άσπρο, μαύρο"
+        />
+
+        <StrayLocationInfo form={form} />
+
+        <StrayNeuteringInfo form={form} />
+
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Καταχώρηση..." : "Καταχώρηση Αδέσποτου"}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+export default StrayRegistrationForm;

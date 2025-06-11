@@ -1,0 +1,70 @@
+
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface ReportBasicInfoProps {
+  animalType: string;
+  setAnimalType: (value: string) => void;
+  condition: string;
+  setCondition: (value: string) => void;
+  description: string;
+  setDescription: (value: string) => void;
+}
+
+const ReportBasicInfo = ({
+  animalType,
+  setAnimalType,
+  condition,
+  setCondition,
+  description,
+  setDescription,
+}: ReportBasicInfoProps) => {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="animal-type">Τύπος ζώου *</Label>
+        <Select value={animalType} onValueChange={setAnimalType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Επιλέξτε τύπο ζώου" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="dog">Σκύλος</SelectItem>
+            <SelectItem value="cat">Γάτα</SelectItem>
+            <SelectItem value="other">Άλλο</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="condition">Κατάσταση *</Label>
+        <Select value={condition} onValueChange={setCondition}>
+          <SelectTrigger>
+            <SelectValue placeholder="Επιλέξτε κατάσταση" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="injured">Τραυματισμένο</SelectItem>
+            <SelectItem value="sick">Άρρωστο</SelectItem>
+            <SelectItem value="healthy">Υγιές</SelectItem>
+            <SelectItem value="hungry">Πεινασμένο</SelectItem>
+            <SelectItem value="lost">Χαμένο</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Περιγραφή *</Label>
+        <Textarea
+          id="description"
+          placeholder="Περιγράψτε την κατάσταση του ζώου και τις περιστάσεις..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="min-h-[100px]"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ReportBasicInfo;
