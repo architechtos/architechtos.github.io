@@ -1,0 +1,29 @@
+
+project_id = "fxsylrovbjxkqwmjaixp"
+
+[storage]
+file_size_limit = "10MB"
+
+[[storage.buckets]]
+name = "reports"
+public = true
+file_size_limit = "5MB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/gif", "image/webp"]
+
+[[storage.buckets]]
+name = "strays"
+public = true
+file_size_limit = "5MB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/gif", "image/webp"]
+
+[[storage.buckets]]
+name = "thread-images"
+public = true
+file_size_limit = "5MB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/gif", "image/webp"]
+
+[[storage.buckets]]
+name = "activity-images"
+public = true
+file_size_limit = "5MB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/gif", "image/webp"]
