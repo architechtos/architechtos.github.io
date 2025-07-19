@@ -20,22 +20,22 @@ const Footer = () => {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">
-              Πλοήγηση
+              Φιλικές ιστοσελίδες
             </h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link to="/" className="text-sm text-gray-500 hover:text-strays-orange">
-                  Αρχική
+                <Link to="https://www.facebook.com/groups/2811263802519910" className="text-sm text-gray-500 hover:text-strays-orange">
+                  Τα γατάκια της Γειτονιάς μας
                 </Link>
               </li>
               <li>
-                <Link to="/forum" className="text-sm text-gray-500 hover:text-strays-orange">
-                  Φόρουμ
+                <Link to="https://www.facebook.com/groups/1141448096963708" className="text-sm text-gray-500 hover:text-strays-orange">
+                  Αδεσποτάκια της Εκτενεπολ
                 </Link>
               </li>
               <li>
-                <Link to="/chat" className="text-sm text-gray-500 hover:text-strays-orange">
-                  Συνομιλία
+                <Link to="https://www.facebook.com/adespotoifiloixanthis" className="text-sm text-gray-500 hover:text-strays-orange">
+                  Αδέσποτοι φίλοι
                 </Link>
               </li>
               <li>
