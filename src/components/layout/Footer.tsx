@@ -12,8 +12,8 @@ const Footer = () => {
               </div>
               <span className="ml-2 text-lg font-medium text-gray-900">Αδεσπολις</span>
             </Link>
-            <p className="mt-2 text-sm text-orange-500">Καταχωρημένη εκδοση:1.5. 
-                                                        Ημερομηνία αναβάθμισης: 19/06/2025</p>
+            <p className="mt-2 text-sm text-orange-500">Καταχωρημένη εκδοση:1.9. 
+                                                        Ημερομηνία αναβάθμισης: 19/07/2025</p>
             <p className="mt-2 text-sm text-gray-500">Παρέχουμε μία πλατφόρμα με τα απαραίτητα
 εργαλεία για την καταγραφή, την υποστήριξη 
 και βοήθεια των αδέσποτων ζώων στην Ξανθη.</p>
